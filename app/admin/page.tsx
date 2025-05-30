@@ -20,6 +20,7 @@ export default function AdminPage() {
   const [selectedDay, setSelectedDay] = useState<"friday" | "saturday" | "sunday">("friday");
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [form, setForm] = useState({ title: "", description: "", image: "" });
+  const [editId, setEditId] = useState<string | null>(null);
 
   useEffect(() => {
     const dbRef = ref(database, `achievements/${selectedDay}`);
@@ -55,17 +56,26 @@ export default function AdminPage() {
     setAchievements(newItems);
   };
 
-  const handleAdd = () => {
+  const handleAddOrUpdate = () => {
     if (!form.title || !form.description || !form.image) return;
-    const newRef = push(ref(database, `achievements/${selectedDay}`));
-    update(newRef, {
-      title: form.title,
-      description: form.description,
-      image: form.image,
-      completed: false,
-      proof: null,
-      order: achievements.length,
-    });
+    if (editId) {
+      update(ref(database, `achievements/${selectedDay}/${editId}`), {
+        title: form.title,
+        description: form.description,
+        image: form.image,
+      });
+      setEditId(null);
+    } else {
+      const newRef = push(ref(database, `achievements/${selectedDay}`));
+      update(newRef, {
+        title: form.title,
+        description: form.description,
+        image: form.image,
+        completed: false,
+        proof: null,
+        order: achievements.length,
+      });
+    }
     setForm({ title: "", description: "", image: "" });
   };
 
@@ -77,6 +87,15 @@ export default function AdminPage() {
     update(ref(database, `achievements/${selectedDay}/${id}`), {
       completed: false,
       proof: null,
+    });
+  };
+
+  const handleEdit = (achievement: Achievement) => {
+    setEditId(achievement.id);
+    setForm({
+      title: achievement.title,
+      description: achievement.description,
+      image: achievement.image,
     });
   };
 
@@ -96,7 +115,7 @@ export default function AdminPage() {
       </div>
 
       <div className="bg-gray-900 p-4 rounded mb-6">
-        <h2 className="font-semibold mb-2">Nieuwe achievement toevoegen</h2>
+        <h2 className="font-semibold mb-2">{editId ? "Achievement bewerken" : "Nieuwe achievement toevoegen"}</h2>
         <input
           type="text"
           placeholder="Titel"
@@ -117,8 +136,8 @@ export default function AdminPage() {
           onChange={(e) => setForm({ ...form, image: e.target.value })}
           className="w-full mb-2 p-2 rounded bg-gray-800 text-white"
         />
-        <button onClick={handleAdd} className="bg-green-500 px-4 py-2 rounded text-white font-bold">
-          Toevoegen
+        <button onClick={handleAddOrUpdate} className="bg-green-500 px-4 py-2 rounded text-white font-bold">
+          {editId ? "Bijwerken" : "Toevoegen"}
         </button>
       </div>
 
@@ -147,6 +166,9 @@ export default function AdminPage() {
                         )}
                       </div>
                       <div className="flex space-x-2">
+                        <button onClick={() => handleEdit(achievement)} className="text-yellow-400 hover:text-yellow-600">
+                          <Pencil size={16} />
+                        </button>
                         <button onClick={() => handleReset(achievement.id)} className="text-blue-400 hover:text-blue-600">
                           <RotateCw size={16} />
                         </button>
