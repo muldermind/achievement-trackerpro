@@ -169,9 +169,11 @@ export default function AdminPage() {
                         <button onClick={() => handleEdit(achievement)} className="text-yellow-400 hover:text-yellow-600">
                           <Pencil size={16} />
                         </button>
-                        <button onClick={() => handleReset(achievement.id)} className="text-blue-400 hover:text-blue-600">
-                          <RotateCw size={16} />
-                        </button>
+                        {achievement.completed && (
+                          <button onClick={() => handleReset(achievement.id)} className="text-blue-400 hover:text-blue-600">
+                            <RotateCw size={16} />
+                          </button>
+                        )}
                         <button onClick={() => handleDelete(achievement.id)} className="text-red-400 hover:text-red-600">
                           <Trash2 size={16} />
                         </button>
