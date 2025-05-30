@@ -53,11 +53,10 @@ export default function AdminPage() {
     setAchievements(newItems);
   };
 
-  const handleAddAchievement = async () => {
-    if (!form.title.trim() || !form.description.trim()) return;
-
+  const handleAdd = () => {
+    if (!form.title || !form.description || !form.image) return;
     const newRef = push(ref(database, `achievements/${selectedDay}`));
-    await update(newRef, {
+    update(newRef, {
       title: form.title,
       description: form.description,
       image: form.image,
@@ -65,66 +64,55 @@ export default function AdminPage() {
       proof: null,
       order: achievements.length,
     });
-
     setForm({ title: "", description: "", image: "" });
   };
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Admin - {selectedDay}</h1>
+    <div className="p-4 min-h-screen bg-black text-white">
+      <h1 className="text-xl font-bold mb-4">Admin: Achievements beheren</h1>
       <div className="flex gap-2 mb-4">
         {(["friday", "saturday", "sunday"] as const).map((day) => (
           <button
             key={day}
             onClick={() => setSelectedDay(day)}
-            className={`px-4 py-2 border rounded ${selectedDay === day ? "bg-blue-500 text-white" : "bg-white"}`}
+            className={`px-4 py-2 border rounded font-bold ${selectedDay === day ? "bg-yellow-400 text-black" : "bg-gray-800 text-white"}`}
           >
-            {day}
+            {day.charAt(0).toUpperCase() + day.slice(1)}
           </button>
         ))}
       </div>
 
-      {/* Nieuw achievement toevoegen */}
-      <div className="mb-4 p-4 border rounded bg-gray-50">
+      <div className="bg-gray-900 p-4 rounded mb-6">
         <h2 className="font-semibold mb-2">Nieuwe achievement toevoegen</h2>
         <input
           type="text"
           placeholder="Titel"
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
-          className="block w-full mb-2 p-2 border rounded"
+          className="w-full mb-2 p-2 rounded bg-gray-800 text-white"
         />
-        <input
-          type="text"
+        <textarea
           placeholder="Beschrijving"
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
-          className="block w-full mb-2 p-2 border rounded"
+          className="w-full mb-2 p-2 rounded bg-gray-800 text-white"
         />
         <input
           type="text"
           placeholder="Afbeeldings-URL"
           value={form.image}
           onChange={(e) => setForm({ ...form, image: e.target.value })}
-          className="block w-full mb-2 p-2 border rounded"
+          className="w-full mb-2 p-2 rounded bg-gray-800 text-white"
         />
-        <button
-          onClick={handleAddAchievement}
-          className="bg-green-600 text-white px-4 py-2 rounded"
-        >
+        <button onClick={handleAdd} className="bg-green-500 px-4 py-2 rounded text-white font-bold">
           Toevoegen
         </button>
       </div>
 
-      {/* Drag & drop lijst */}
       <DragDropContext onDragEnd={handleDragEnd}>
         <Droppable droppableId="achievementList">
           {(provided) => (
-            <ul
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className="space-y-2"
-            >
+            <ul {...provided.droppableProps} ref={provided.innerRef} className="space-y-4">
               {achievements.map((achievement, index) => (
                 <Draggable key={achievement.id} draggableId={achievement.id} index={index}>
                   {(provided) => (
@@ -132,10 +120,17 @@ export default function AdminPage() {
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      className="p-4 border rounded bg-white shadow"
+                      className="p-4 border rounded bg-gray-800 shadow"
                     >
                       <strong>{achievement.title}</strong>
-                      <p className="text-sm text-gray-600">{achievement.description}</p>
+                      <p className="text-sm text-gray-300 mb-2">{achievement.description}</p>
+                      {achievement.image && (
+                        <img
+                          src={achievement.image}
+                          alt={achievement.title}
+                          className="w-16 h-16 object-cover"
+                        />
+                      )}
                     </li>
                   )}
                 </Draggable>
