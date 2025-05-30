@@ -13,7 +13,6 @@ declare global {
 const UPLOADCARE_PUBLIC_KEY = "d1217cd20d649c303bd6";
 const SUCCESS_SOUND_URL = "https://ucarecdn.com/64e3ee89-cecf-4995-bb1b-ad7aef31cbb3/achievementsucces.mp3";
 
-// Achievement-type
 interface Achievement {
   id: string;
   title: string;
@@ -21,6 +20,7 @@ interface Achievement {
   image: string;
   completed: boolean;
   proof: string | null;
+  order?: number;
 }
 
 export default function Page() {
@@ -44,10 +44,12 @@ export default function Page() {
       }
 
       const convert = (dayData: any): Achievement[] =>
-        Object.entries(dayData || {}).map(([key, value]) => ({
-          ...(value as Omit<Achievement, "id">),
-          id: key,
-        }));
+        Object.entries(dayData || {})
+          .map(([key, value]) => ({
+            ...(value as Omit<Achievement, "id">),
+            id: key,
+          }))
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
       setAchievements({
         friday: convert(data.friday),
@@ -119,7 +121,6 @@ export default function Page() {
       <div className="space-y-4 max-w-md">
         {achievements[selectedDay]?.map((ach) => {
           const isSelected = selectedId === ach.id;
-
           const cardBorder = ach.completed ? "border-gray-600" : "border-gray-700";
           const cardBg = ach.completed ? "bg-gray-800" : "bg-[#1a1a1a]";
 
