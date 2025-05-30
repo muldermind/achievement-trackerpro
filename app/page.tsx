@@ -148,6 +148,10 @@ export default function Page() {
                 </div>
               </div>
 
+              {isSelected && ach.completed && ach.proof && (
+                <img src={ach.proof} alt="proof" className="mt-2 w-full rounded" />
+              )}
+
               {isSelected && !ach.completed && (
                 <div className="mt-2">
                   <button
