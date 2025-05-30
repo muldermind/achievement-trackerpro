@@ -49,7 +49,12 @@ export default function Page() {
             ...(value as Omit<Achievement, "id">),
             id: key,
           }))
-          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+          .sort((a, b) => {
+            // Completed achievements first, then by order
+            if (a.completed && !b.completed) return -1;
+            if (!a.completed && b.completed) return 1;
+            return (a.order ?? 0) - (b.order ?? 0);
+          });
 
       setAchievements({
         friday: convert(data.friday),
