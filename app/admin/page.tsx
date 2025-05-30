@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ref, onValue, update, push } from "firebase/database";
+import { ref, onValue, update, push, remove } from "firebase/database";
 import { database } from "../../firebaseConfig";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
+import { Pencil, Trash2, RotateCw } from "lucide-react";
 
 interface Achievement {
   id: string;
@@ -24,16 +25,17 @@ export default function AdminPage() {
     const dbRef = ref(database, `achievements/${selectedDay}`);
     const unsubscribe = onValue(dbRef, (snapshot) => {
       const data = snapshot.val() || {};
-      const loaded: Achievement[] = Object.entries(data).map(([id, val]: any) => ({
-        id,
-        title: val.title,
-        description: val.description,
-        image: val.image,
-        completed: val.completed,
-        proof: val.proof,
-        order: val.order ?? 0,
-      }))
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      const loaded: Achievement[] = Object.entries(data)
+        .map(([id, val]: any) => ({
+          id,
+          title: val.title,
+          description: val.description,
+          image: val.image,
+          completed: val.completed,
+          proof: val.proof,
+          order: val.order ?? 0,
+        }))
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
       setAchievements(loaded);
     });
     return () => unsubscribe();
@@ -67,8 +69,19 @@ export default function AdminPage() {
     setForm({ title: "", description: "", image: "" });
   };
 
+  const handleDelete = (id: string) => {
+    remove(ref(database, `achievements/${selectedDay}/${id}`));
+  };
+
+  const handleReset = (id: string) => {
+    update(ref(database, `achievements/${selectedDay}/${id}`), {
+      completed: false,
+      proof: null,
+    });
+  };
+
   return (
-    <div className="p-4 min-h-screen bg-black text-white">
+    <div className="p-4 min-h-screen bg-black text-white max-w-2xl mx-auto">
       <h1 className="text-xl font-bold mb-4">Admin: Achievements beheren</h1>
       <div className="flex gap-2 mb-4">
         {(["friday", "saturday", "sunday"] as const).map((day) => (
@@ -120,17 +133,27 @@ export default function AdminPage() {
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      className="p-4 border rounded bg-gray-800 shadow"
+                      className="p-4 border rounded bg-gray-800 shadow flex items-center justify-between"
                     >
-                      <strong>{achievement.title}</strong>
-                      <p className="text-sm text-gray-300 mb-2">{achievement.description}</p>
-                      {achievement.image && (
-                        <img
-                          src={achievement.image}
-                          alt={achievement.title}
-                          className="w-16 h-16 object-cover"
-                        />
-                      )}
+                      <div>
+                        <strong>{achievement.title}</strong>
+                        <p className="text-sm text-gray-300 mb-2">{achievement.description}</p>
+                        {achievement.image && (
+                          <img
+                            src={achievement.image}
+                            alt={achievement.title}
+                            className="w-16 h-16 object-cover"
+                          />
+                        )}
+                      </div>
+                      <div className="flex space-x-2">
+                        <button onClick={() => handleReset(achievement.id)} className="text-blue-400 hover:text-blue-600">
+                          <RotateCw size={16} />
+                        </button>
+                        <button onClick={() => handleDelete(achievement.id)} className="text-red-400 hover:text-red-600">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </li>
                   )}
                 </Draggable>
